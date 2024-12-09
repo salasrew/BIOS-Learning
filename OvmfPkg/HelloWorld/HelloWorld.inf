@@ -25,6 +25,7 @@
   UefiApplicationEntryPoint
   BaseLib
   DebugLib
+  IoLib
   
 [Protocols]
 
