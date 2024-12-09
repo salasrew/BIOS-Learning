@@ -1,0 +1,44 @@
+## @file
+# Module entry point library for UEFI Application.
+#
+# Copyright (c) 2007 - 2018, Intel Corporation. All rights reserved.<BR>
+#
+#  HelloTestApp
+#
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00012345
+  BASE_NAME                      = HelloWorld
+  FILE_GUID                      = 2bb7be60-29a3-49e4-844d-f829f42afef3
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = HelloWorldEntryPoint
+
+[Sources]
+  HelloWorld.c
+
+[LibraryClasses]
+  UefiLib
+  UefiBootServicesTableLib
+  UefiApplicationEntryPoint
+  BaseLib
+  DebugLib
+  
+[Protocols]
+
+[Guids]
+
+[Packages]
+  MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
+  ArmPkg/ArmPkg.dec
+  OvmfPkg/OvmfPkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+
+[FeaturePcd]
+
+
+# [Depex]
+#  True
