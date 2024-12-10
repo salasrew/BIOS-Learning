@@ -25,31 +25,37 @@ HelloWorldEntryPoint(
 
     // gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress|0xE0000000
     UINT32 PCIBaseAddr;
+    UINT32 PCIEndAddr;
+
+    UINTN Vendor;
     UINTN Bus;
     UINTN Device;
     UINTN Function;
     UINTN Offset;
+    UINTN Data;
 
     // Cannot Use UINT32 Addr
     UINT64 Addr;
 
     PCIBaseAddr = 0xE0000000;
+    PCIEndAddr =  0xEFFFF000;
 
+    Vendor = 0;
     Bus = 0;
     Device = 0;
     Function = 0;
     Offset = 0;
     Addr = 0;
+    Data = 0;
 
-    Print(L"Address|Reserved|BusNum|Device|Function|Register");
+    // Print(L"Address|Reserved|BusNum|Device|Function|Register|\n");
 
-    for(Offset;Offset <= 255 ; Offset = Offset + 4)
-    {
-        Addr = PCIBaseAddr + Offset;
-        Print(L"%x ", MmioRead32(Addr));
-        if(Offset % 15 == 0 ) Print(L"\n");
-        // Print(L"1");
-    }
+    // for(Offset;Offset <= 0XFF ; Offset++)
+    // {
+    //     Addr = PCIBaseAddr + Offset;
+    //     Print(L"%x ", MmioRead8(Addr));
+    //     if(Offset % 15 == 0 ) Print(L"\n");
+    // }
 
     Print(L"---------------------------------------------------\n");
 
@@ -60,27 +66,63 @@ HelloWorldEntryPoint(
     //         for(Function = 0 ; Function <= 0x7 ; Function++)
     //         {
     //             Addr = PCIBaseAddr + (Bus << 16) + (Device << 11) + (Function << 8);
-    //             Print(L"Data at address 0x%08x: \n", Addr);
+    //             // Print(L"Data at address 0x%08x: %x \n", Addr, MmioRead32(Addr));
 
     //             // Print(L"DeviceID: %d ,VendorID: %d ,FunctionID: %d ,");
     //             // Print(L"1");
+
     //         }
     //     }
     // }
 
     Print(L"---------------------------------------------------\n");
-    Offset = 0;
 
-    // while(Offset <= 0x100)
-    // {
-    //     Addr = PCIBaseAddr + Offset;
-    //     Print(L"0x%x ", MmioRead32(Addr));
-    //     if(Offset%15 == 0)
-    //     {
-    //         Print(L"\n");
-    //     }
-    //     Offset++;
-    // }
+    // -----------------------PCI----------------------------
+    // Config_Address CF8 , CFC  
+    // it seems like we need to write specific address in 0x0CF8 Register
+    // And Then we can get the specific address's Data from 0x0CFC 
+    // And the maximum is to 0x0CFF (?)
+
+    Print(L"|------------PCI256Byte-----------| \n");
+
+    while (Offset <= 0xFF)
+    {
+        Addr = PCIBaseAddr + Offset;
+        Data = IoRead8(Addr);
+        Print(L"%2x ", Data);
+        Offset++;
+        if (Offset % 16 == 0)
+        {
+            Print(L"\n");
+        }
+    }
+
+    Print(L"|------------PCI256Byte-----------| \n");
+    // initialize the PCIBaseAddr
+    PCIBaseAddr = 0xE0000000;
+    
+    // Print(L"|---Data---|---Vendor---|---Device---|---Fun---| \n");
+    Print(L"|---Data---|---Vendor---|---Device---| \n");
+    while (PCIBaseAddr <= PCIEndAddr)
+    {
+        IoWrite32(0xCF8, PCIBaseAddr);
+        Data = IoRead32(0xCFC);
+
+        if (Data == 0xFFFFFFFF)
+        {
+            PCIBaseAddr = PCIBaseAddr + 0x100;
+            continue;
+        }
+
+        // Original Data , Bus , Device , Function , Register
+        Vendor = Data & 0xFFFF;
+        Device = (Data >> 16) & 0xFFFF;
+
+        Print(L"| %x |   %-8x |   %-8x | \n", Data , Vendor , Device);
+
+        PCIBaseAddr = PCIBaseAddr + 0x100;
+    }
+    // Print(L"|---------------------------------| \n");
 
     return Status;
 }
