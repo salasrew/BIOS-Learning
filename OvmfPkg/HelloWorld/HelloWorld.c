@@ -27,26 +27,34 @@ HelloWorldEntryPoint(
     UINT32 PCIBaseAddr;
     UINT32 PCIEndAddr;
 
-    UINTN LeftLine;
     UINTN Vendor;
     UINTN Bus;
     UINTN Device;
-    UINTN Function;
     UINTN Offset;
     UINTN Data;
+    UINTN StatusCommand;
     UINTN ClassCode;
+
+    UINTN BusNumber;
+    UINTN DeviceNumber;
+    UINTN FunctionNumber;
+    UINTN RegisterNumber;
 
     PCIBaseAddr = 0xE0000000;
     PCIEndAddr =  0xE00FF000;
 
-    LeftLine = 0x00;
     Vendor = 0;
     Bus = 0;
     Device = 0;
-    Function = 0;
     Offset = 0;
     Data = 0;
+    StatusCommand = 0;
     ClassCode = 0;
+
+    BusNumber = 0;
+    DeviceNumber = 0;
+    FunctionNumber = 0;
+    RegisterNumber = 0;
 
     // Print(L"Address|Reserved|BusNum|Device|Function|Register|\n");
 
@@ -85,7 +93,7 @@ HelloWorldEntryPoint(
 
     Print(L"|------------PCI256Byte-----------| \n");
 
-    Print(L"  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F \n");
+    Print(L"   00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F \n");
 
     while (Offset <= 0xFF)
     {
@@ -111,8 +119,9 @@ HelloWorldEntryPoint(
     PCIBaseAddr = 0xE0000000;
     Print(L"|------------PCI Scan-----------| \n");
 
-    // Print(L"|---Data---|---Vendor---|---Device---|---Fun---| \n");
-    Print(L"|---Data---|---Vendor---|---Device---| \n");
+    // Print(L"|---Data---|---Vendor---|---Device---|---Status---|---CMD---|---ClassCode---|---Revision---|\n");
+    Print(L"|---Data---|---Vendor---|---Device---|---BusNum---|---DevNum---|---FuncNum---|---RegNum---| \n");
+
     while (PCIBaseAddr <= PCIEndAddr)
     {
         IoWrite32(0xCF8, PCIBaseAddr);
@@ -124,12 +133,27 @@ HelloWorldEntryPoint(
             continue;
         }
 
-        // Original Data , Vendor , Device , Class Code
+        // 04 Status Command
+        IoWrite32(0xCF8, PCIBaseAddr + 0x04);
+        StatusCommand = IoRead32(0xCFC);
+        // Print(L"Status Command| %x | \n", Data);
+
+        // 08 ClassCode RevisionID
+        IoWrite32(0xCF8, PCIBaseAddr + 0x08);
+        ClassCode = IoRead32(0xCFC);
+        // Print(L"ClassCode RevisionID| %x | \n", Data);
+
+        // Original Data , Vendor , Device , Status Command , ClassCode RevisionID
         Vendor = Data & 0xFFFF;
         Device = (Data >> 16) & 0xFFFF;
-    
-        Print(L"| %x |   %-8x |   %-8x | \n", Data , Vendor , Device);
-        
+        // Print(L"| %x |   %-8x |   %-8x |   %-8x |   %-8x |   %-8x |   %-8x | \n", Data , Vendor , Device , StatusCommand & 0xFFFF , (StatusCommand >> 16) & 0xFFFF  , (ClassCode >> 8) & 0xFFFFFF , (ClassCode) & 0xFF);
+
+        // Print VendorID , DeviceID , BusNumber , DeviceNumber , FunctionNumber , RegisterNumber
+        BusNumber = (PCIBaseAddr >> 16) & 0xFF;
+        DeviceNumber = (PCIBaseAddr >> 11) & 0x1F;
+        FunctionNumber = (PCIBaseAddr >> 8) & 0x7;
+        RegisterNumber = PCIBaseAddr & 0xFF;
+        Print(L"| %x |   %-8x |   %-8x |   %7d |   %-4d |   %-4d |   %-4d |   %-4d | \n", Data , Vendor , Device , BusNumber, DeviceNumber, FunctionNumber, RegisterNumber);
 
         PCIBaseAddr = PCIBaseAddr + 0x100;
     }
