@@ -27,26 +27,26 @@ HelloWorldEntryPoint(
     UINT32 PCIBaseAddr;
     UINT32 PCIEndAddr;
 
+    UINTN LeftLine;
     UINTN Vendor;
     UINTN Bus;
     UINTN Device;
     UINTN Function;
     UINTN Offset;
     UINTN Data;
-
-    // Cannot Use UINT32 Addr
-    UINT64 Addr;
+    UINTN ClassCode;
 
     PCIBaseAddr = 0xE0000000;
-    PCIEndAddr =  0xEFFFF000;
+    PCIEndAddr =  0xE00FF000;
 
+    LeftLine = 0x00;
     Vendor = 0;
     Bus = 0;
     Device = 0;
     Function = 0;
     Offset = 0;
-    Addr = 0;
     Data = 0;
+    ClassCode = 0;
 
     // Print(L"Address|Reserved|BusNum|Device|Function|Register|\n");
 
@@ -85,22 +85,32 @@ HelloWorldEntryPoint(
 
     Print(L"|------------PCI256Byte-----------| \n");
 
+    Print(L"  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F \n");
+
     while (Offset <= 0xFF)
     {
-        Addr = PCIBaseAddr + Offset;
-        Data = IoRead8(Addr);
+        IoWrite32(0xCF8, PCIBaseAddr);
+        Data = IoRead8(0xCFC);
+
+        if(Offset % 0x10 == 0)
+        {
+            Print(L"%2x ", Offset);
+        }
+        
         Print(L"%2x ", Data);
         Offset++;
         if (Offset % 16 == 0)
         {
             Print(L"\n");
         }
+        PCIBaseAddr = PCIBaseAddr + 1;
     }
 
-    Print(L"|------------PCI256Byte-----------| \n");
+    Print(L"|------------PCI256ByteEnd-----------| \n");
     // initialize the PCIBaseAddr
     PCIBaseAddr = 0xE0000000;
-    
+    Print(L"|------------PCI Scan-----------| \n");
+
     // Print(L"|---Data---|---Vendor---|---Device---|---Fun---| \n");
     Print(L"|---Data---|---Vendor---|---Device---| \n");
     while (PCIBaseAddr <= PCIEndAddr)
@@ -114,11 +124,12 @@ HelloWorldEntryPoint(
             continue;
         }
 
-        // Original Data , Bus , Device , Function , Register
+        // Original Data , Vendor , Device , Class Code
         Vendor = Data & 0xFFFF;
         Device = (Data >> 16) & 0xFFFF;
-
+    
         Print(L"| %x |   %-8x |   %-8x | \n", Data , Vendor , Device);
+        
 
         PCIBaseAddr = PCIBaseAddr + 0x100;
     }
