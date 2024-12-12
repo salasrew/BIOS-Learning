@@ -28,6 +28,10 @@
   IoLib
 
   ShellDebug1CommandsLib
+  BcfgCommandLib
+  HandleParsingLib
+  ShellCommandLib
+
 
 [Protocols]
 
