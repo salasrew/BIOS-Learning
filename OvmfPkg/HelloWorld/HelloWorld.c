@@ -8,8 +8,12 @@
 
 #include <IndustryStandard/Pci.h>
 #include <Protocol/PciIo.h>
+// #include "UefiShellDebug1CommandsLib.h"
 
 #include <Library/IoLib.h>
+// #include <Library/ShellDebug1CommandsLib.h>
+
+// #include <ShellPkg/UefiShellDebug1CommandsLib/Pci>
 
 
 // HelloWorldEntryPoint()
