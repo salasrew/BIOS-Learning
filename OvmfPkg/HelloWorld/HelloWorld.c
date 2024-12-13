@@ -133,9 +133,6 @@ PCI_CLASS_ENTRY  gClassStringList[] = {
     /* null string ends the list */ NULL
   }
 };
-UINT16 SwapBytes(UINT16 value) {
-    return (value >> 8) | (value << 8);
-}
 
 // HelloWorldEntryPoint()
 EFI_STATUS
@@ -157,18 +154,17 @@ HelloWorldEntryPoint(
     UINT8 MainLeftHex;
     UINT8 MainRightHex;
 
-    UINT32 VendorID;
-    UINT32 Bus;
-    UINT32 Device;
-    UINT32 DeviceID;
+    UINT16 VendorID;
+    UINT16 DeviceID;
 
-    UINT32 Function;
+    UINT32 Bus;
+    UINT8 Device;
+
+    UINT8 Function;
     UINT32 Offset;
 
     PCIBaseAddr = 0xE0000000;
     PCIEndAddr =  0xEFFFF000;
-
-    VendorID = 0;
 
     Offset = 0;
     Data = 0;
@@ -200,7 +196,7 @@ HelloWorldEntryPoint(
     // PCIE Initialization
     PCIBaseAddr = 0xE0000000;
 
-    Print(L"|---Data---|---VendorID---|---DeviceID---|---Bus---|---Device---|---Function---|---ClassCode---|---Swap---|\n");
+    Print(L"|---Data---|---VendorID---|---DeviceID---|---Bus---|---Device---|---Function---|---ClassCode---|---DescText---|\n");
     for(Bus = 0; Bus < 256 ; Bus++)
     {
         for(Device = 0; Device < 32 ; Device++)
@@ -209,8 +205,8 @@ HelloWorldEntryPoint(
             {
                 Data = MmioRead32(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12));
 
-                // VendorID DeviceID BusNumber DeviceNumber FunctionNumber
-                if(Data != 0xFFFFFFFF)
+                // VendorID DeviceID BusNum
+                if (Data != 0xFFFFFFFF) 
                 {
                     ClassCode = MmioRead32(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + 0x08);
                     // 23:16 -> ClassCode 15:8 -> SubClass 7:0 -> Interface
@@ -221,17 +217,30 @@ HelloWorldEntryPoint(
                     MainRightHex = MainClass & 0xF;
                     // Print(L"MainLeftHex , MainRightHex , Merge \n");
                     // Print(L"%2x , %2x , %2x\n", MainLeftHex, MainRightHex, MainLeftHex | MainRightHex);
+                    MainClass = MainLeftHex | MainRightHex;
+
 
                     VendorID = Data & 0xFFFF;
                     DeviceID = (Data >> 16) & 0xFFFF;
 
+                    // if status . 4th bit is 1 then CapibilitiesPointer is valid else not valid
+                    // StatusReg = MmioRead16(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + 0x06);
+
+                    // Capbilities List is exist
+                    // UINT8 CP_10;
+                    // UINT8 CP_01;
+
+                    // CapibilitiesPointer List 1st point 
+                    UINT8 CapibilitiesPtr;
+                    UINT8 CapibilitiesID;
+
+                    CapibilitiesPtr = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + 0x34);
+                    Print(L"CapibilitiesPointer : %2x\n", CapibilitiesPtr);
+                    CapibilitiesID = MmioRead8(CapibilitiesPtr);
+                    Print(L"CapibilitiesID : %2x\n", CapibilitiesID);
+
                     // Data VendorID DeviceID Bus Device Function
-                    // Print(L"VendorID: %4x DeviceID: %4x BusNumber: %2x DeviceNumber: %2x FunctionNumber: %2x\n", VendorID, DeviceID, Bus, Device, Function);
-                    Print(L"| %8x | %4x | %4x | %2x | %2x | %2x | %12x | %12x |\n",Data, VendorID, DeviceID, Bus, Device, Function , ClassCode , MainLeftHex | MainRightHex);
-                
-                    // if (ClassCode >> 16) & 0xFF == gClassStringList[(ClassCode >> 16) & 0xFF] return gClassStringList[(ClassCode >> 16) & 0xFF].DescText
-                    // Print(L"ClassCode , SubClass, Interface\n");
-                    Print(L"DescText : %s\n", gClassStringList[MainClass].DescText);
+                    Print(L"| %8x | %8x | %8x | %4x | %4x | %2x | %12x | %12x |\n",Data, VendorID, DeviceID, Bus, Device, Function , MainClass , gClassStringList[MainClass].DescText);
                 
                 }
                 
