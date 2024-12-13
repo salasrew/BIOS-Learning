@@ -234,17 +234,16 @@ HelloWorldEntryPoint(
                     UINT8 CapabilitiesPtr;
                     UINT8 CapabilitiesID;
                     CapabilitiesPtr = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + 0x34);
-                    Print(L"First CapibilitiesPointer : %2x\n", CapabilitiesPtr);
-                    CapabilitiesID = MmioRead8(CapabilitiesPtr);
-                    Print(L"First CapibilitiesID : %2x\n", CapabilitiesID);
+                    CapabilitiesID = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr);
+                    Print(L"Start (CapibilitiesPointer , CapabilitiesID) = (%2x , %2x) \n" , CapabilitiesPtr,CapabilitiesID);
 
                     // if ID == 0x10 Dont Jump Else Jump
                     // if Next CapibilitiesPtr is 0x00 then End
                     while (CapabilitiesID != 0x10)
                     {
                         CapabilitiesPtr = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 1);
-                        CapabilitiesID = MmioRead8(CapabilitiesPtr);
-                        Print(L"Next CapibilitiesPointer : %2x\n", CapabilitiesPtr);
+                        CapabilitiesID = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr);
+                        Print(L"Next CapibilitiesPointer : %2x ", CapabilitiesPtr);
                         Print(L"Next CapibilitiesID : %2x\n", CapabilitiesID);
                         if (MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 1) == 0x00)
                         {
@@ -252,10 +251,10 @@ HelloWorldEntryPoint(
                             break;
                         }                    
                     }
-                    Print(L"CapabilitiesID: %x \n" , CapabilitiesID);
+                    Print(L"Final CapabilitiesID: %x \n" , CapabilitiesID);
 
                     // Data VendorID DeviceID Bus Device Function
-                    Print(L"| %8x | %8x | %8x | %4x | %4x | %2x | %12x | %s |\n",Data, VendorID, DeviceID, Bus, Device, Function , MainClass , gClassStringList[MainClass].DescText);
+                    Print(L"| %8x | %12x | %10x | %4x | %4x | %2x | %12x | %s |\n",Data, VendorID, DeviceID, Bus, Device, Function , MainClass , gClassStringList[MainClass].DescText);
                 
                 }
                 
