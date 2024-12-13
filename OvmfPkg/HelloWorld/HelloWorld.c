@@ -215,22 +215,11 @@ HelloWorldEntryPoint(
                     MainClass = (ClassCode >> 24) & 0xFF;
                     MainLeftHex = MainClass >> 4;
                     MainRightHex = MainClass & 0xF;
-                    // Print(L"MainLeftHex , MainRightHex , Merge \n");
-                    // Print(L"%2x , %2x , %2x\n", MainLeftHex, MainRightHex, MainLeftHex | MainRightHex);
                     MainClass = MainLeftHex | MainRightHex;
-
 
                     VendorID = Data & 0xFFFF;
                     DeviceID = (Data >> 16) & 0xFFFF;
 
-                    // if status . 4th bit is 1 then CapibilitiesPointer is valid else not valid
-                    // StatusReg = MmioRead16(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + 0x06);
-
-                    // Capbilities List is exist
-                    // UINT8 CP_10;
-                    // UINT8 CP_01;
-
-                    // CapibilitiesPointer List 1st point 
                     UINT8 CapabilitiesPtr;
                     UINT8 CapabilitiesID;
                     CapabilitiesPtr = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + 0x34);
@@ -243,19 +232,29 @@ HelloWorldEntryPoint(
                     {
                         CapabilitiesPtr = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 1);
                         CapabilitiesID = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr);
-                        Print(L"Next CapibilitiesPointer : %2x ", CapabilitiesPtr);
-                        Print(L"Next CapibilitiesID : %2x\n", CapabilitiesID);
+                        Print(L"Next CPPter : %2x ", CapabilitiesPtr);
+                        Print(L"Next CPID : %2x ", CapabilitiesID);
                         if (MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 1) == 0x00)
                         {
-                            Print(L"Not Found\n");
+                            Print(L"Capabilities Table is Not Found\n");
                             break;
                         }                    
                     }
-                    Print(L"Final CapabilitiesID: %x \n" , CapabilitiesID);
-
+                    if(CapabilitiesID == 0x10)
+                    {
+                        Print(L"Final CapabilitiesID: %x \n" , CapabilitiesID);                    
+                        UINT32 LinkCapabilitiesReigster = MmioRead32(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 0x0c);
+                        // 3:0 is MaxLinkSpeed 9:4 is MaxLinkWidth
+                        UINT8 MaxLinkSpeed = LinkCapabilitiesReigster & 0x0F;
+                        UINT8 MaxLinkWidth = (LinkCapabilitiesReigster >> 4) & 0x3F;
+                        Print(L"MaxLinkSpeed : %2x , MaxLinkWidth : %2x\n", MaxLinkSpeed, MaxLinkWidth);
+                        UINT16 LinkControlRegister = MmioRead16(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 0x10);
+                        // 1:0 00 Disabled 01b L0s 10b L1 11b L0s and L1
+                        Print(L"ASPM Control : %2x\n", LinkControlRegister & 0x3);
+                    }
+                    
                     // Data VendorID DeviceID Bus Device Function
                     Print(L"| %8x | %12x | %10x | %4x | %4x | %2x | %12x | %s |\n",Data, VendorID, DeviceID, Bus, Device, Function , MainClass , gClassStringList[MainClass].DescText);
-                
                 }
                 
             }
