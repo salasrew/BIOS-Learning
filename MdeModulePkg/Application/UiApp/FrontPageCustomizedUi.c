@@ -29,10 +29,21 @@ UiCustomizeFrontPage (
   IN VOID            *StartOpCodeHandle
   )
 {
+  // 
+  // Create "Select Learning & Testing " menu with Oneof opcode. 
+  // 
+  // UiCreateLearningRadioMenu(HiiHandle, StartOpCodeHandle);
+
+  //
+  // Create Learning & Testing menu.
+  // 
+  // UiCearteLearningMenu(HiiHandle, StartOpCodeHandle);
+
+
   //
   // Create "Select Language" menu with Oneof opcode.
   //
-  UiCreateLanguageMenu (HiiHandle, StartOpCodeHandle);
+  // UiCreateLanguageMenu (HiiHandle, StartOpCodeHandle);
 
   //
   // Create empty line.

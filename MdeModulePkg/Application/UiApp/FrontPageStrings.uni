@@ -16,6 +16,7 @@
 
 #string STR_FRONT_PAGE_TITLE           #language en-US  "Front Page"
                                        #language fr-FR  "Front Page"
+#string STR_FRONT_PAGE_TESTING         #language en-US  "TestingTestingTestingTesting"
 #string STR_FRONT_PAGE_COMPUTER_MODEL  #language en-US  ""
                                        #language fr-FR  ""
 #string STR_FRONT_PAGE_CPU_MODEL       #language en-US  ""
@@ -66,3 +67,16 @@
                                          #language fr-FR  "WARNING: Test key detected."
 #string STR_NULL_STRING                #language en-US  " "
                                        #language fr-FR  " "
+
+
+#string STR_Learning_STRING            #language en-US  "LearningText"
+                                       #language fr-FR  "LearningText"
+#string STR_Learning_STRING_HELP       #language en-US  "LearningText the current setting."
+                                       #language fr-FR  "LearningText the current setting."
+#string STR_Learning_STRING_RADIO_1     #language en-US  "Learning Radio Button No 1"
+#string STR_Learning_STRING_RADIO_2     #language en-US  "Learning Radio Button No 2"
+#string STR_Learning_STRING_RADIO_3     #language en-US  "Learning Radio Button No 3"
+#string STR_Learning_STRING_RADIO_4     #language en-US  "Learning Radio Button No 4"
+#string STR_Learning_STRING_RADIO_5     #language en-US  "Learning Radio Button No 5"
+#string STR_Learning_STRING_RADIO_6     #language en-US  "Learning Radio Button No 6"
+#string STR_Learning_STRING_RADIO_7     #language en-US  "Learning Radio Button No 7"

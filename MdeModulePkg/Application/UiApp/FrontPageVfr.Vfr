@@ -22,6 +22,12 @@ formset
 
   form formid = FRONT_PAGE_FORM_ID,
        title  = STRING_TOKEN(STR_FRONT_PAGE_TITLE);
+       
+    banner
+      title = STRING_TOKEN(STR_FRONT_PAGE_TESTING),
+      line  1,
+      align left;
+
 
     banner
       title = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL),

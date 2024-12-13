@@ -53,6 +53,25 @@ UI_HII_DRIVER_INSTANCE  *gHiiDriverList;
 extern EFI_HII_HANDLE   gStringPackHandle;
 UINT8                   gCurrentLanguageIndex;
 
+// EFIAPI
+// HiiCreateOneOfOpCode(
+//   IN VOID *OpCodeHandle,
+//   IN UINT16 StringId,
+//   IN UINT8 Flags,
+//   IN UINT8 Type,
+//   IN UINT64 Value,
+// );
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_SET_VARIABLE)(
+  IN CHAR16 *VariableName,
+  IN EFI_GUID *VendorGuid,
+  IN UINT32 Attributes,
+  IN UINTN DataSize,
+  IN VOID *Data
+);
+
 /**
   Get next language from language code list (with separator ';').
 
@@ -93,6 +112,32 @@ GetNextLanguage (
 
   *LangCode = StringPtr + Index;
 }
+
+// Callback difinitions
+// EFI_STATUS
+// LearningRadioChangeHandler (
+//   IN  EFI_IFR_TYPE_VALUE  *Value
+//   )
+//   {
+//     EFI_STATUS Status;
+
+//     CHAR8 *LearningText = "Learning Radio Button No 1";
+//     DEBUG((EFI_D_INFO, "[Learning] LearningRadioChangeHandler value = %x \n", Value->u8));
+
+//     Status = gRT->SetVariable(
+//       L"LearningRadioButtonText",
+//       &gEfiIfrFrontPageGuid,
+//       EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
+//       22,
+//       LearningText
+//     );
+//   if(EFI_ERROR(Status))
+//   {
+//     DEBUG((EFI_D_ERROR, "[Learning] LearningRadioChangeHandler status=%r\n",Status));
+//     return EFI_DEVICE_ERROR;
+//   }
+//   return EFI_SUCCESS;
+//   }
 
 /**
   This function processes the language changes in configuration.
@@ -153,6 +198,7 @@ LanguageChangeHandler (
 
   return EFI_SUCCESS;
 }
+
 
 /**
   This function processes the results of changes in configuration.
@@ -234,6 +280,11 @@ UiSupportLibCallbackHandler (
         gRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
         *Status = EFI_UNSUPPORTED;
 
+      // case FRONT_PAGE_KEY_Learning_RADIO:
+      //   *Status = LearningRadioChangeHandler (Value);
+      //   break;
+
+
       default:
         break;
     }
@@ -241,6 +292,122 @@ UiSupportLibCallbackHandler (
 
   return TRUE;
 }
+/** 
+ *  Create Learning menu in the front page.
+ * 
+ * 
+ **/
+// VOID UiCreateLearningMenu(
+//   IN EFI_HII_HANDLE HiiHandle,
+//   IN VOID *StartOpCodeHandle
+//   )
+// {
+//   HiiCreateActionOpCode(
+//     StartOpCodeHandle,
+//     FRONT_PAGE_KEY_LEARNING,
+//     STRING_TOKEN(STR_LEARNING),
+//     STRING_TOKEN(STR_LEARNING_HELP),
+//     EFI_IFR_FLAG_CALLBACK,
+//     0
+//   );
+// }
+
+/** 
+ *  Create Learning menu in the front page with oneof opcode.
+ * 
+ * 
+ **/
+// VOID
+// UICreateLearningRadioMenu(
+//   IN EFI_HII_HANDLE HiiHandle,
+//   IN VOID *StartOpCodeHandle
+//   )
+// {
+//     CHAR8 *LearningText;
+//     VOID *OptionsOpCodeHandle;
+//     UINTN BufferSize;
+//     EFI_STATUS Status;
+
+//     LearningText = AllocatePool(22);
+//     ASSERT(LearningText != NULL);
+
+//     Status = gRT->GetVariable(
+//       L"LearningRadioButtonText",
+//       &gEfiIfrFrontPageGuid,
+//       NULL,
+//       &BufferSize,
+//       LearningText
+//     );
+
+//     if(!EFI_ERROR (Status))
+//     {
+//       DEBUG((EFI_D_INFO, "[Learning]LearningRadioButtonText: %a\n", LearningText));
+//     }
+//     else
+//     {
+//       DEBUG((EFI_D_INFO, "[Learning]LearningRadioButtonText: %a\n", Status));
+//     }
+
+//     OptionsOpCodeHandle = HiiAllocateOpCodeHandle();
+//     ASSERT(OptionsOpCodeHandle != NULL);
+
+//     HiiCreateOneOfOptionOpCode( // Create a oneOf button set 
+//       OptionsOpCodeHandle,
+//       STRING_TOKEN (STR_LEARNING_RADIO_1), 
+//       EFI_IFR_OPTION_DEFAULT, // single button attribute
+//       EFI_IFR_NUMERIC_SIZE_1, // different behavior or appearance
+//       0
+//     );
+//     HiiCreateOneOfOptionOpCode( // Create a oneOf button set 
+//       OptionsOpCodeHandle,
+//       STRING_TOKEN (STR_LEARNING_RADIO_2), 
+//       EFI_IFR_OPTION_DEFAULT, // single button attribute
+//       EFI_IFR_NUMERIC_SIZE_1, // different behavior or appearance
+//       1
+//     );
+//     HiiCreateOneOfOptionOpCode( // Create a oneOf button set 
+//       OptionsOpCodeHandle,
+//       STRING_TOKEN (STR_LEARNING_RADIO_3), 
+//       EFI_IFR_OPTION_DEFAULT, // single button attribute
+//       EFI_IFR_NUMERIC_SIZE_1, // different behavior or appearance
+//       2
+//     );
+//     HiiCreateOneOfOptionOpCode( // Create a oneOf button set 
+//       OptionsOpCodeHandle,
+//       STRING_TOKEN (STR_LEARNING_RADIO_4), 
+//       EFI_IFR_OPTION_DEFAULT, // single button attribute
+//       EFI_IFR_NUMERIC_SIZE_1, // different behavior or appearance
+//       3
+//     );
+//     HiiCreateOneOfOptionOpCode( // Create a oneOf button set 
+//       OptionsOpCodeHandle,
+//       STRING_TOKEN (STR_LEARNING_RADIO_5), 
+//       EFI_IFR_OPTION_DEFAULT, // single button attribute
+//       EFI_IFR_NUMERIC_SIZE_1, // different behavior or appearance
+//       4
+//     );
+//     HiiCreateOneOfOptionOpCode( // Create a oneOf button set 
+//       OptionsOpCodeHandle,
+//       STRING_TOKEN (STR_LEARNING_RADIO_6), 
+//       EFI_IFR_OPTION_DEFAULT, // single button attribute
+//       EFI_IFR_NUMERIC_SIZE_1, // different behavior or appearance
+//       5
+//     );
+
+//     HiiCreateOneOfOpCode(
+//       StartOpCodeHandle,
+//       FRONT_PAGE_KEY_LEARNING_RADIO,
+//       0,
+//       0,
+//       STRING_TOKEN(STR_LEARNING_RADIO_STRING),
+//       STRING_TOKEN(STR_LEARNING_RADIO_STRING_HELP),
+//       EFI_IFR_FLAG_CALLBACK,
+//       EFI_IFR_NUMERIC_SIZE_1,
+//       OptionsOpCodeHandle,
+//       NULL
+//     );
+
+// }
 
 /**
   Create Select language menu in the front page with oneof opcode.
