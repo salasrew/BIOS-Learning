@@ -172,31 +172,31 @@ HelloWorldEntryPoint(
     MainClass = 0;
 
     // Show 256 pcie configuration space
-    Print(L"--------------------PCI256Byte---------------------\n");
-    Print(L"   00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F \n");
-    while (Offset <= 0xFF)
-    {
-        Data = MmioRead8(PCIBaseAddr);
+    // Print(L"--------------------PCI256Byte---------------------\n");
+    // Print(L"   00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F \n");
+    // while (Offset <= 0xFF)
+    // {
+    //     Data = MmioRead8(PCIBaseAddr);
 
-        if(Offset % 0x10 == 0)
-        {
-            Print(L"%2x ", Offset);
-        }
+    //     if(Offset % 0x10 == 0)
+    //     {
+    //         Print(L"%2x ", Offset);
+    //     }
         
-        Print(L"%2x ", Data);
-        Offset++;
-        if (Offset % 16 == 0)
-        {
-            Print(L"\n");
-        }
-        PCIBaseAddr = PCIBaseAddr + 1;
-    }
-    Print(L"---------------------------------------------------\n");
+    //     Print(L"%2x ", Data);
+    //     Offset++;
+    //     if (Offset % 16 == 0)
+    //     {
+    //         Print(L"\n");
+    //     }
+    //     PCIBaseAddr = PCIBaseAddr + 1;
+    // }
+    // Print(L"---------------------------------------------------\n");
 
     // PCIE Initialization
     PCIBaseAddr = 0xE0000000;
 
-    Print(L"|---Data---|---VendorID---|---DeviceID---|---Bus---|---Device---|---Function---|---ClassCode---|---DescText---|\n");
+    Print(L"|---Data---|---VendorID---|---DeviceID---|---Bus---|---Device---|---Function---|---ClassCode---|---DescText---|---MaxLinkSpeed---|---MaxLinkWidth---|---ASPMCtrl---|\n");
     for(Bus = 0; Bus < 256 ; Bus++)
     {
         for(Device = 0; Device < 32 ; Device++)
@@ -224,37 +224,105 @@ HelloWorldEntryPoint(
                     UINT8 CapabilitiesID;
                     CapabilitiesPtr = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + 0x34);
                     CapabilitiesID = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr);
-                    Print(L"Start (CapibilitiesPointer , CapabilitiesID) = (%2x , %2x) \n" , CapabilitiesPtr,CapabilitiesID);
+                    // Print(L"Start (CapibilitiesPointer , CapabilitiesID) = (%2x , %2x) \n" , CapabilitiesPtr,CapabilitiesID);
 
+
+                    BOOLEAN CapabilitiesExist = FALSE;
                     // if ID == 0x10 Dont Jump Else Jump
                     // if Next CapibilitiesPtr is 0x00 then End
                     while (CapabilitiesID != 0x10)
                     {
                         CapabilitiesPtr = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 1);
                         CapabilitiesID = MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr);
-                        Print(L"Next CPPter : %2x ", CapabilitiesPtr);
-                        Print(L"Next CPID : %2x ", CapabilitiesID);
+                        // Print(L"Next CPPter : %2x ", CapabilitiesPtr);
+                        // Print(L"Next CPID : %2x ", CapabilitiesID);
                         if (MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 1) == 0x00)
                         {
-                            Print(L"Capabilities Table is Not Found\n");
+                            // Print(L"Capabilities Table is Not Found\n");
                             break;
                         }                    
                     }
+
+                    // %d result - 1 
+                    // Supported Link Speeds Vector field bit 0 ~ 6
+                    UINT8 printMaxLinkSpeed = 0;
+                    /*
+                        Link Capabilities Register 0Ch
+                        1  00 00001b x1
+                        2  00 00010b x2
+                        4  00 00100b x4
+                        8  00 01000b x8
+                        16 01 00000b x16
+                    */
+                    UINT8 printMaxLinkWidth = 0;
+                    /*
+                        Link Control Register 10h 
+                        ASPM Control
+                        00b Disabled
+                        01b L0s Entry Enabled
+                        10b L1 Entry Enabled
+                        11b L0s and L1 Entry Enabled
+                    */
+
+                    UINT16 printLinkControl = 0;
+
                     if(CapabilitiesID == 0x10)
                     {
-                        Print(L"Final CapabilitiesID: %x \n" , CapabilitiesID);                    
+                        CapabilitiesExist = TRUE;
+                        // Print(L"Final CapabilitiesID: %x \n" , CapabilitiesID);                    
                         UINT32 LinkCapabilitiesReigster = MmioRead32(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 0x0c);
                         // 3:0 is MaxLinkSpeed 9:4 is MaxLinkWidth
                         UINT8 MaxLinkSpeed = LinkCapabilitiesReigster & 0x0F;
                         UINT8 MaxLinkWidth = (LinkCapabilitiesReigster >> 4) & 0x3F;
-                        Print(L"MaxLinkSpeed : %2x , MaxLinkWidth : %2x\n", MaxLinkSpeed, MaxLinkWidth);
+                        // Print(L"MaxLinkSpeed : %2x , MaxLinkWidth : %2x\n", MaxLinkSpeed, MaxLinkWidth);
                         UINT16 LinkControlRegister = MmioRead16(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 0x10);
                         // 1:0 00 Disabled 01b L0s 10b L1 11b L0s and L1
-                        Print(L"ASPM Control : %2x\n", LinkControlRegister & 0x3);
+                        // Print(L"ASPM Control : %2x\n", LinkControlRegister & 0x3);
+                        printMaxLinkSpeed = MaxLinkSpeed;
+                        printMaxLinkWidth = MaxLinkWidth;
+                        printLinkControl = LinkControlRegister & 0x3;
+                        printMaxLinkSpeed = printMaxLinkSpeed - 1;
                     }
                     
                     // Data VendorID DeviceID Bus Device Function
-                    Print(L"| %8x | %12x | %10x | %4x | %4x | %2x | %12x | %s |\n",Data, VendorID, DeviceID, Bus, Device, Function , MainClass , gClassStringList[MainClass].DescText);
+                    Print(L"| %8x | %12x | %10x | %4x | %4x | %2x | %12x | %s |",Data, VendorID, DeviceID, Bus, Device, Function , MainClass , gClassStringList[MainClass].DescText);
+                  if(printMaxLinkSpeed - 1 < 0)
+                  {
+                    Print(L" | | ");
+                  }
+                  else
+                  {
+                    Print(L" Supported Link Speeds Vector field bit %d | ", printMaxLinkSpeed);
+                  }
+                  if(printMaxLinkWidth == 0)
+                  {
+                    Print(L" | ");
+                  }
+                  else
+                  {
+                    Print(L" x%d |", printMaxLinkWidth);
+                  }
+                  if(printLinkControl == 0)
+                  {
+                    Print(L" | Disabled |\n");
+                  }
+                  else if(printLinkControl == 1)
+                  {
+                    Print(L" | L0s Entry Enabled |\n");
+                  }
+                  else if(printLinkControl == 2)
+                  {
+                    Print(L" | L1 Entry Enabled |\n");
+                  }
+                  else if(printLinkControl == 3)
+                  {
+                    Print(L" | L0s and L1 Entry Enabled |\n");
+                  }
+                  else
+                  {
+                    Print(L" |  |\n");
+                  }
+                  if (MmioRead8(PCIBaseAddr + (Bus << 20) + (Device << 15) + (Function << 12) + CapabilitiesPtr + 1) == 0x00) Print(L"Capabilities Table is Not Found\n");
                 }
                 
             }
