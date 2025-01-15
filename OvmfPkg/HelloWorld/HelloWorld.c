@@ -5,10 +5,23 @@
 #include <Library/DebugLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/UefiBootServicesTableLib.h>
-#include <IndustryStandard/Pci.h>
 #include <Protocol/PciIo.h>
 #include <Library/IoLib.h>
-#include <Library/ShellCommandLib.h>
+
+extern EFI_BOOT_SERVICES *gBS;
+
+typedef struct {
+    VOID *Address;
+    UINTN Size;
+    VOID *Caller;
+} MEMORY_RECORD;
+
+#define MAX_RECORDS 1000000
+MEMORY_RECORD Records[MAX_RECORDS];
+UINTN RecordCount = 0;
+
+EFI_ALLOCATE_POOL OriginalAllocatePool;
+// EFI_FREE_POOL OriginalFreePool;
 
 // #include "ShellPkg/Library/UefiShellDebug1CommandsLib/Pci.h"
 // #include <ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.h>
@@ -133,6 +146,7 @@ PCI_CLASS_ENTRY  gClassStringList[] = {
     /* null string ends the list */ NULL
   }
 };
+
 
 // HelloWorldEntryPoint()
 EFI_STATUS
@@ -329,8 +343,6 @@ HelloWorldEntryPoint(
         }
     }
 
-    Print(L"---------------------------------------------------\n");
-
-
     return Status;
 }
+

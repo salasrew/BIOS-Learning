@@ -26,12 +26,7 @@
   BaseLib
   DebugLib
   IoLib
-
   ShellDebug1CommandsLib
-  BcfgCommandLib
-  HandleParsingLib
-  ShellCommandLib
-
 
 [Protocols]
 
@@ -41,10 +36,8 @@
   MdeModulePkg/MdeModulePkg.dec
   MdePkg/MdePkg.dec
   ShellPkg/ShellPkg.dec
-
   ArmPkg/ArmPkg.dec
   OvmfPkg/OvmfPkg.dec
-  
   EmbeddedPkg/EmbeddedPkg.dec
 
 [FeaturePcd]
